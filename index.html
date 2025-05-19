@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz CCNA 2</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Animations personnalisées */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+    /* Style pour le mode sombre */
+    .dark-mode {
+      background-color: #1a202c;
+      color: #e2e8f0;
+    }
+    .dark-mode .bg-white {
+      background-color: #2d3748;
+    }
+    .dark-mode .text-gray-800 {
+      color: #e2e8f0; /* Texte clair en mode sombre */
+    }
+    .dark-mode .bg-gray-50 {
+      background-color: #4a5568; /* Fond des options en mode sombre */
+    }
+    .dark-mode .hover\:bg-gray-100:hover {
+      background-color: #718096; /* Hover en mode sombre */
+    }
+    .dark-mode .text-gray-600 {
+      color: #a0aec0; /* Texte secondaire en mode sombre */
+    }
+    .dark-mode .text-gray-700 {
+      color: #cbd5e1; /* Labels et autres textes en mode sombre */
+    }
+    .dark-mode .question,
+    .dark-mode .answers span,
+    .dark-mode .result,
+    .dark-mode .results-screen li p,
+    .dark-mode label {
+      color: #e2e8f0; /* Texte clair pour questions, réponses, résultats */
+    }
+    .dark-mode .text-green-600 {
+      color: #34d399; /* Vert clair pour réponses correctes */
+    }
+    .dark-mode .text-red-600 {
+      color: #f87171; /* Rouge clair pour réponses incorrectes */
+    }
+    /* Amélioration des radios */
+    input[type="radio"] {
+      accent-color: #3b82f6;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 transition-colors">
+  <div class="w-full max-w-lg bg-white rounded-lg shadow-lg p-6 text-gray-800">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold text-center">Quiz CCNA 2</h1>
+      <button id="theme-toggle" class="text-sm  px-2 py-1 rounded bg-gray-50  hover:bg-gray-100 transition-colors" aria-label="Activer le mode sombre">
+        🌙 Mode sombre
+      </button>
+    </div>
+
+    <div id="start-screen" class="mb-4">
+      <label for="question-count" class="block text-sm font-medium text-gray-700 mb-2">
+        Nombre de questions :
+      </label>
+      <input type="number" id="question-count" min="1" max="100" value="10" class="w-full p-2 border rounded mb-4  bg-gray-50  hover:bg-gray-100 transition-colors" />
+      <button id="start-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+        Démarrer le quiz
+      </button>
+    </div>
+
+    <div id="quiz-section" class="hidden">
+      <div class="mb-4">
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+        </div>
+        <p class="text-sm text-gray-600 mt-1 text-center">
+          Question <span id="current-question">1</span> sur <span id="total-questions"></span>
+        </p>
+      </div>
+
+      <div id="quiz-container" class="mb-6"></div>
+
+      <div class="flex justify-center gap-4">
+        <button id="next-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors">
+          Suivant
+        </button>
+        <button id="restart-btn" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+          Recommencer
+        </button>
+      </div>
+
+      <div id="result" class="mt-4 text-center font-semibold"></div>
+    </div>
+
+    <div id="results-screen" class="hidden mt-4"></div>
+  </div>
+
+  <script>
+const quizData = [
+  {
+    question: "Qu’est-ce qu’un VLAN ?",
+    options: [
+      "a) Un domaine physique",
+      "b) Un protocole réseau",
+      "c) Un domaine de diffusion logique",
+      "d) Un type de câble"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quel protocole est utilisé pour marquer les trames avec des informations de VLAN sur un trunk ?",
+    options: [
+      "a) IS-IS",
+      "b) 802.1Q",
+      "c) OSPF",
+      "d) RIP"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de créer un VLAN 10 nommé “Sales” ?",
+    options: [
+      "a) vlan create 10 name Sales",
+      "b) vlan 10 puis name Sales",
+      "c) switch vlan 10 Sales",
+      "d) interface vlan 10"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est le VLAN par défaut sur les switches Cisco ?",
+    options: [
+      "a) VLAN 1",
+      "b) VLAN 10",
+      "c) VLAN 100",
+      "d) VLAN 20"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande attribue le VLAN 20 à une interface FastEthernet 0/1 ?",
+    options: [
+      "a) switchport access vlan 10",
+      "b) vlan 20 interface fa0/1",
+      "c) switchport mode access puis switchport access vlan 20",
+      "d) interface vlan 20"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quel type de VLAN est utilisé pour la gestion des switches ?",
+    options: [
+      "a) VLAN natif",
+      "b) VLAN de management",
+      "c) VLAN voix",
+      "d) VLAN par défaut"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel protocole permet de synchroniser les VLANs entre plusieurs switches ?",
+    options: [
+      "a) VTP (VLAN Trunking Protocol)",
+      "b) STP (Spanning Tree Protocol)",
+      "c) DTP (Dynamic Trunking Protocol)",
+      "d) 802.1Q"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quel est le mode VTP par défaut sur un switch Cisco ?",
+    options: [
+      "a) Client",
+      "b) Server",
+      "c) Transparent",
+      "d) Off"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de configurer un trunk entre deux switches ?",
+    options: [
+      "a) switchport mode access",
+      "b) switchport mode trunk",
+      "c) switchport trunk enable",
+      "d) trunk on"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel VLAN est utilisé pour le trafic non marqué dans un trunk 802.1Q ?",
+    options: [
+      "a) VLAN par défaut",
+      "b) VLAN natif (Native VLAN)",
+      "c) VLAN voix",
+      "d) VLAN de management"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande affiche la liste des VLANs configurés ?",
+    options: [
+      "a) show vlan brief",
+      "b) show interfaces trunk",
+      "c) show vtp status",
+      "d) show running-config"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quel est l’avantage principal des VLANs ?",
+    options: [
+      "a) Augmenter la bande passante",
+      "b) Segmenter les domaines de broadcast",
+      "c) Simplifier le câblage",
+      "d) Réduire la latence"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de vérifier le statut des trunks ?",
+    options: [
+      "a) show vlan brief",
+      "b) show interfaces trunk",
+      "c) show interfaces switchport",
+      "d) show vtp status"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel protocole permet de négocier automatiquement un trunk entre switches Cisco ?",
+    options: [
+      "a) VTP",
+      "b) DTP (Dynamic Trunking Protocol)",
+      "c) STP",
+      "d) 802.1Q"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est le nombre maximal de VLANs possibles avec 802.1Q ?",
+    options: [
+      "a) 256",
+      "b) 1000",
+      "c) 4096",
+      "d) 1024"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quelle commande désactive DTP sur une interface ?",
+    options: [
+      "a) switchport mode access",
+      "b) switchport nonegotiate",
+      "c) no switchport trunk",
+      "d) switchport trunk off"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel type de VLAN est souvent utilisé pour le trafic VoIP ?",
+    options: [
+      "a) VLAN natif",
+      "b) VLAN voix",
+      "c) VLAN de management",
+      "d) VLAN par défaut"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande configure un VLAN natif sur un trunk ?",
+    options: [
+      "a) switchport native vlan 100",
+      "b) switchport trunk native vlan 100",
+      "c) vlan native 100",
+      "d) trunk vlan 100"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle est la différence entre un trunk et un port d’accès ?",
+    options: [
+      "a) Un trunk est plus rapide",
+      "b) Un trunk transporte plusieurs VLANs, un port d’accès un seul",
+      "c) Un port d’accès utilise 802.1Q",
+      "d) Un trunk est utilisé pour les routeurs"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande supprime un VLAN ?",
+    options: [
+      "a) delete vlan 10",
+      "b) no vlan 10",
+      "c) vlan 10 delete",
+      "d) remove vlan 10"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel problème survient si le VLAN natif est mal configuré entre deux switches ?",
+    options: [
+      "a) Perte de bande passante",
+      "b) Problèmes de communication et perte de trames",
+      "c) Boucles réseau",
+      "d) Erreurs de routage"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande vérifie le mode VTP d’un switch ?",
+    options: [
+      "a) show vtp status",
+      "b) show vlan brief",
+      "c) show interfaces trunk",
+      "d) show vtp config"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quel est le rôle du VLAN 1 dans un switch Cisco ?",
+    options: [
+      "a) VLAN voix",
+      "b) VLAN par défaut pour les ports non configurés",
+      "c) VLAN natif uniquement",
+      "d) VLAN de management uniquement"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande configure un port comme accès pour le VLAN 30 ?",
+    options: [
+      "a) switchport vlan 30",
+      "b) switchport mode access puis switchport access vlan 30",
+      "c) vlan 30 access",
+      "d) interface vlan 30"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel protocole empêche les boucles de switching avec les VLANs ?",
+    options: [
+      "a) VTP",
+      "b) STP (Spanning Tree Protocol)",
+      "c) DTP",
+      "d) 802.1Q"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande vérifie l’appartenance d’un port à un VLAN ?",
+    options: [
+      "a) show interfaces switchport",
+      "b) show vlan brief",
+      "c) show interfaces trunk",
+      "d) show vtp status"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle est la plage normale des VLANs sur Cisco ?",
+    options: [
+      "a) 1-100",
+      "b) 1-1005",
+      "c) 1-4096",
+      "d) 1006-4094"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande configure un switch en mode VTP “Transparent” ?",
+    options: [
+      "a) vtp transparent",
+      "b) vtp mode transparent",
+      "c) vtp mode off",
+      "d) no vtp"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est le risque si deux switches ont des VLANs natifs différents sur un trunk ?",
+    options: [
+      "a) Problèmes de communication et perte de trames",
+      "b) Boucles réseau",
+      "c) Erreurs de routage",
+      "d) Perte de bande passante"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande sauvegarde la configuration des VLANs ?",
+    options: [
+      "a) save config",
+      "b) write memory",
+      "c) copy vlan startup",
+      "d) backup config"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel VLAN ne peut pas être modifié ou supprimé ?",
+    options: [
+      "a) VLAN 1",
+      "b) VLAN 10",
+      "c) VLANs 1002-1005",
+      "d) VLAN 100"
+    ],
+    answer: 2 // c) (Corrigé)
+  },
+  {
+    question: "Quelle commande permet de voir les détails VTP d’un switch ?",
+    options: [
+      "a) show vtp status",
+      "b) show vtp brief",
+      "c) show vlan brief",
+      "d) show interfaces trunk"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle est la différence entre “switchport mode trunk” et “switchport mode dynamic desirable” ?",
+    options: [
+      "a) Aucun, ils sont identiques",
+      "b) “dynamic desirable” négocie le trunk, “trunk” le force",
+      "c) “trunk” est plus sécurisé",
+      "d) “dynamic desirable” est pour les routeurs"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est le rôle de VTP pruning ?",
+    options: [
+      "a) Supprimer les VLANs inutiles",
+      "b) Éviter le flooding des broadcasts sur les trunks inutiles",
+      "c) Synchroniser les VLANs",
+      "d) Configurer des trunks"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande active VTP pruning ?",
+    options: [
+      "a) vtp prune enable",
+      "b) vtp pruning",
+      "c) pruning on",
+      "d) enable vtp pruning"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle est la plage étendue des VLANs ?",
+    options: [
+      "a) 1-1005",
+      "b) 1006-4094",
+      "c) 1-4096",
+      "d) 100-1000"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande configure un port en mode trunk sans négociation DTP ?",
+    options: [
+      "a) switchport mode trunk",
+      "b) switchport mode trunk puis switchport nonegotiate",
+      "c) switchport nonegotiate",
+      "d) trunk no dtp"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel VLAN est utilisé par défaut pour CDP et STP ?",
+    options: [
+      "a) VLAN 1",
+      "b) VLAN natif",
+      "c) VLAN voix",
+      "d) VLAN 100"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande vérifie la configuration d’un trunk ?",
+    options: [
+      "a) show interfaces trunk",
+      "b) show vlan brief",
+      "c) show vtp status",
+      "d) show interfaces switchport"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle est la version de VTP la plus récente supportée par Cisco ?",
+    options: [
+      "a) Version 1",
+      "b) Version 2",
+      "c) Version 3",
+      "d) Version 4"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quel est l’inconvénient d’utiliser VTP en mode “Server” partout ?",
+    options: [
+      "a) Trop de bande passante",
+      "b) Risque de supprimer accidentellement des VLANs",
+      "c) Problèmes de sécurité",
+      "d) Complexité de configuration"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande assigne un VLAN voix (VLAN 150) et un VLAN data (VLAN 20) sur un port ?",
+    options: [
+      "a) switchport vlan 150 voice",
+      "b) switchport voice vlan 150 et switchport access vlan 20",
+      "c) vlan 150 voice vlan 20",
+      "d) voice vlan 150 data 20"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de voir le VLAN natif d’un trunk ?",
+    options: [
+      "a) show interfaces trunk",
+      "b) show vlan brief",
+      "c) show vtp status",
+      "d) show interfaces switchport"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande configure un switch en mode VTP Client ?",
+    options: [
+      "a) vtp client",
+      "b) vtp mode client",
+      "c) vtp mode server",
+      "d) vtp off"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est l’avantage de VTP version 3 ?",
+    options: [
+      "a) Moins de bande passante",
+      "b) Support des VLANs étendus et sécurité",
+      "c) Simplification des trunks",
+      "d) Compatibilité avec 802.1Q"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande vérifie les statistiques DTP sur une interface ?",
+    options: [
+      "a) show interfaces trunk",
+      "b) show dtp interface",
+      "c) show vtp status",
+      "d) show interfaces switchport"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle est la commande pour désactiver VTP ?",
+    options: [
+      "a) no vtp",
+      "b) vtp mode transparent",
+      "c) vtp off",
+      "d) disable vtp"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel type de port est utilisé pour connecter un switch à un routeur ?",
+    options: [
+      "a) Port voix",
+      "b) Port d’accès ou trunk",
+      "c) Port natif",
+      "d) Port de management"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande configure un VLAN voix avec une priorité QoS ?",
+    options: [
+      "a) switchport voice vlan 150",
+      "b) mls qos trust cos et switchport voice vlan 150",
+      "c) voice vlan qos",
+      "d) qos voice vlan 150"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de voir la base de données VTP ?",
+    options: [
+      "a) show vtp brief",
+      "b) show vtp database",
+      "c) show vlan brief",
+      "d) show vtp status"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de vérifier les VLANs actifs sur un trunk ?",
+    options: [
+      "a) show vlan brief",
+      "b) show interfaces trunk",
+      "c) show vtp status",
+      "d) show interfaces switchport"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est le VLAN natif par défaut sur un trunk 802.1Q ?",
+    options: [
+      "a) VLAN 1",
+      "b) VLAN 10",
+      "c) VLAN 100",
+      "d) VLAN 999"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet de restreindre les VLANs autorisés sur un trunk ?",
+    options: [
+      "a) switchport vlan allowed",
+      "b) switchport trunk allowed vlan",
+      "c) trunk vlan restrict",
+      "d) vlan trunk limit"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est le rôle du VLAN 1002-1005 sur un switch Cisco ?",
+    options: [
+      "a) VLANs voix",
+      "b) VLANs réservés pour anciens protocoles",
+      "c) VLANs natifs",
+      "d) VLANs de management"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de voir le mode DTP d’une interface ?",
+    options: [
+      "a) show interfaces trunk",
+      "b) show dtp interface",
+      "c) show vtp status",
+      "d) show interfaces switchport"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de configurer un VLAN voix avec une priorité CoS ?",
+    options: [
+      "a) mls qos trust cos",
+      "b) switchport voice vlan 150",
+      "c) voice cos 5",
+      "d) qos cos 5"
+    ],
+    answer: 0 // a) (Corrigé)
+  },
+  {
+    question: "Quelle commande permet de vérifier la version VTP configurée ?",
+    options: [
+      "a) show vtp brief",
+      "b) show vtp status",
+      "c) show vlan brief",
+      "d) show interfaces trunk"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel problème peut survenir si le VLAN natif n’est pas le même des deux côtés d’un trunk ?",
+    options: [
+      "a) Perte de bande passante",
+      "b) Problèmes de communication et perte de trames",
+      "c) Boucles réseau",
+      "d) Erreurs de routage"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de configurer un VLAN de gestion (VLAN 99) avec une adresse IP ?",
+    options: [
+      "a) vlan 99 ip address",
+      "b) interface vlan 99 puis ip address",
+      "c) ip address vlan 99",
+      "d) management vlan 99"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de vérifier les VLANs actifs sur un switch ?",
+    options: [
+      "a) show interfaces trunk",
+      "b) show vlan brief",
+      "c) show vtp status",
+      "d) show interfaces switchport"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Qu’est-ce qu’un VLAN ?",
+    options: [
+      "a) Un protocole réseau",
+      "b) Un domaine de diffusion logique",
+      "c) Un type de câble",
+      "d) Un routeur virtuel"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel équipement est nécessaire pour communiquer entre VLANs ?",
+    options: [
+      "a) Switch Layer 2",
+      "b) Routeur ou switch Layer 3",
+      "c) Point d’accès",
+      "d) Câble trunk"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel protocole est utilisé pour le routage Inter-VLAN ?",
+    options: [
+      "a) STP",
+      "b) VTP",
+      "c) 802.1Q",
+      "d) OSPF"
+    ],
+    answer: 2 // c) (Corrigé)
+  },
+  {
+    question: "Quelle interface est utilisée sur un routeur pour le routage Inter-VLAN avec “Router-on-a-Stick” ?",
+    options: [
+      "a) Sous-interfaces",
+      "b) Interfaces VLAN",
+      "c) Ports d’accès",
+      "d) Interfaces natifs"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quel est le rôle d’une sous-interface sur un routeur dans une configuration Inter-VLAN ?",
+    options: [
+      "a) Associer un VLAN à une interface physique",
+      "b) Configurer un trunk",
+      "c) Activer QoS",
+      "d) Synchroniser les VLANs"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande Cisco permet de créer une sous-interface ?",
+    options: [
+      "a) interface vlan 10",
+      "b) interface gigabitethernet 0/0.10",
+      "c) subinterface 10",
+      "d) vlan subinterface 10"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande attribue un VLAN à une sous-interface ?",
+    options: [
+      "a) vlan 10",
+      "b) encapsulation dot1q 10",
+      "c) switchport vlan 10",
+      "d) trunk vlan 10"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel type de lien est nécessaire entre un switch et un routeur pour le routage Inter-VLAN ?",
+    options: [
+      "a) Port d’accès",
+      "b) Trunk",
+      "c) Port voix",
+      "d) Port natif"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande configure un port switch en mode trunk ?",
+    options: [
+      "a) switchport mode trunk",
+      "b) switchport mode access",
+      "c) trunk enable",
+      "d) switchport trunk on"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quel protocole d’encapsulation est utilisé pour marquer les trames VLAN sur un trunk ?",
+    options: [
+      "a) ISL",
+      "b) VTP",
+      "c) Dot1Q",
+      "d) STP"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quelle commande active le routage Inter-VLAN sur un switch Layer 3 ?",
+    options: [
+      "a) ip routing",
+      "b) vlan routing",
+      "c) inter-vlan routing",
+      "d) route enable"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle est l’adresse IP par défaut d’une interface VLAN sur un switch Layer 3 ?",
+    options: [
+      "a) 192.168.1.1",
+      "b) 10.0.0.1",
+      "c) Aucune",
+      "d) 172.16.0.1"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Comment vérifier les VLANs configurés sur un switch Cisco ?",
+    options: [
+      "a) show vlan brief",
+      "b) show interfaces trunk",
+      "c) show running-config",
+      "d) Toutes ces réponses"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Quelle commande affiche les sous-interfaces configurées sur un routeur ?",
+    options: [
+      "a) show interfaces",
+      "b) show ip interface brief",
+      "c) show running-config",
+      "d) Toutes ces réponses"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Quel problème peut survenir si le VLAN n’est pas autorisé sur un lien trunk ?",
+    options: [
+      "a) Boucles réseau",
+      "b) Les paquets du VLAN sont ignorés",
+      "c) Perte de bande passante",
+      "d) Erreurs de routage"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de vérifier le routage Inter-VLAN sur un switch Layer 3 ?",
+    options: [
+      "a) show ip route",
+      "b) show vlan brief",
+      "c) show interfaces trunk",
+      "d) show vtp status"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle est la différence entre un SVI et une sous-interface ?",
+    options: [
+      "a) SVI sur switch Layer 3, sous-interface sur routeur",
+      "b) SVI pour trunks, sous-interface pour accès",
+      "c) SVI pour QoS, sous-interface pour routage",
+      "d) Aucune différence"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande assigne une adresse IP à une interface VLAN (SVI) ?",
+    options: [
+      "a) ip address vlan 10",
+      "b) vlan 10 ip address",
+      "c) switchport ip address",
+      "d) interface vlan 10 puis ip address"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Quel protocole peut remplacer le routage Inter-VLAN traditionnel ?",
+    options: [
+      "a) VTP",
+      "b) STP",
+      "c) Multi-Layer Switching",
+      "d) DTP"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quelle commande permet de dépanner un problème de routage Inter-VLAN ?",
+    options: [
+      "a) show ip route",
+      "b) show interfaces trunk",
+      "c) show vlan brief",
+      "d) Toutes ces réponses"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Quel est le rôle de la commande no shutdown sur une interface VLAN ?",
+    options: [
+      "a) Activer le routage",
+      "b) Activer l’interface SVI",
+      "c) Configurer un trunk",
+      "d) Supprimer un VLAN"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle est la norme IEEE pour le tagging VLAN ?",
+    options: [
+      "a) 802.1D",
+      "b) 802.1Q",
+      "c) 802.3",
+      "d) 802.11"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel équipement ne peut pas router entre VLANs ?",
+    options: [
+      "a) Switch Layer 2",
+      "b) Routeur",
+      "c) Switch Layer 3",
+      "d) Firewall"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet de voir les VLANs sur un trunk ?",
+    options: [
+      "a) show vlan brief",
+      "b) show interfaces trunk",
+      "c) show vtp status",
+      "d) show interfaces switchport"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle est la première étape pour configurer le routage Inter-VLAN ?",
+    options: [
+      "a) Créer des VLANs",
+      "b) Configurer un trunk",
+      "c) Assigner des adresses IP",
+      "d) Toutes ces réponses"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Quel est l’objectif principal de la QoS (Quality of Service) ?",
+    options: [
+      "a) Augmenter la bande passante",
+      "b) Prioriser certains types de trafic",
+      "c) Réduire la latence globale",
+      "d) Simplifier la configuration"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel champ de l’en-tête Ethernet ou IP est utilisé pour la QoS ?",
+    options: [
+      "a) VLAN ID",
+      "b) DSCP / CoS",
+      "c) TTL",
+      "d) MAC Address"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle couche du modèle OSI gère principalement la QoS ?",
+    options: [
+      "a) Couche 2",
+      "b) Couche 4",
+      "c) Couche 3",
+      "d) Couche 7"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quelle est la différence entre CoS et DSCP ?",
+    options: [
+      "a) CoS (Layer 2), DSCP (Layer 3)",
+      "b) CoS (Layer 3), DSCP (Layer 2)",
+      "c) CoS est plus précis",
+      "d) Aucune différence"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "À quoi sert la commande mls qos trust sur un switch Cisco ?",
+    options: [
+      "a) Activer QoS globalement",
+      "b) Faire confiance aux marquages QoS",
+      "c) Configurer un VLAN voix",
+      "d) Supprimer les marquages"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Sur quel type de port doit-on configurer mls qos trust ?",
+    options: [
+      "a) Port d’accès",
+      "b) Trunk",
+      "c) Port connecté à un téléphone IP",
+      "d) b et c"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Que se passe-t-il si mls qos trust n’est pas activé sur un port ?",
+    options: [
+      "a) Les marquages CoS/DSCP sont ignorés",
+      "b) Le trafic est bloqué",
+      "c) Le port passe en mode best-effort",
+      "d) a et c"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Quelle commande permet nuestros de configurer la confiance QoS sur un port pour le CoS (Layer 2) ?",
+    options: [
+      "a) mls qos trust cos",
+      "b) mls qos trust dscp",
+      "c) switchport qos cos",
+      "d) qos trust cos"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet de faire confiance au marquage DSCP (Layer 3) ?",
+    options: [
+      "a) mls qos trust dscp",
+      "b) mls qos trust cos",
+      "c) switchport qos dscp",
+      "d) qos trust dscp"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Que fait la commande mls qos trust device cisco-phone ?",
+    options: [
+      "a) Active QoS globalement",
+      "b) Fait confiance au CoS si téléphone Cisco détecté",
+      "c) Configure un VLAN voix",
+      "d) Désactive DTP"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande active globalement la QoS sur un switch Cisco ?",
+    options: [
+      "a) qos enable",
+      "b) mls qos",
+      "c) qos global",
+      "d) enable qos"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande affiche la configuration QoS d’un port ?",
+    options: [
+      "a) show mls qos interface",
+      "b) show qos status",
+      "c) show interfaces qos",
+      "d) show vlan qos"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet de définir un CoS par défaut si le trafic n’est pas marqué ?",
+    options: [
+      "a) mls qos cos 3",
+      "b) mls qos default cos 3",
+      "c) switchport cos 3",
+      "d) qos cos default 3"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Que fait la commande switchport priority extend cos 0 ?",
+    options: [
+      "a) Force CoS 0 pour le PC derrière un téléphone IP",
+      "b) Active QoS globalement",
+      "c) Configure un VLAN voix",
+      "d) Désactive les marquages CoS"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet de vérifier si la QoS est activée globalement ?",
+    options: [
+      "a) show mls qos",
+      "b) show qos status",
+      "c) show running-config",
+      "d) a et c"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Un téléphone IP Cisco envoie du trafic VoIP avec CoS 5, mais le switch le traite comme best-effort (CoS 0). Quelle est la cause probable ?",
+    options: [
+      "a) mls qos trust cos non configuré",
+      "b) QoS désactivé globalement",
+      "c) VLAN voix mal configuré",
+      "d) Toutes ces réponses"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Quel problème peut survenir si mls qos trust cos est configuré sur un port connecté à un PC ?",
+    options: [
+      "a) Le PC peut abuser des priorités QoS",
+      "b) Le port est bloqué",
+      "c) Perte de bande passante",
+      "d) Erreurs de routage"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet de désactiver la confiance QoS sur un port ?",
+    options: [
+      "a) no mls qos trust",
+      "b) mls qos disable",
+      "c) no qos trust",
+      "d) qos off"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Pourquoi utiliser mls qos trust device cisco-phone au lieu de mls qos trust cos ?",
+    options: [
+      "a) Plus sécurisé",
+      "b) Détecte les téléphones Cisco via CDP",
+      "c) Active QoS globalement",
+      "d) a et b"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Quelle commande permet de mapper un CoS à une file d’attente ?",
+    options: [
+      "a) mls qos map cos 5 to queue 4",
+      "b) qos cos queue 5",
+      "c) switchport cos queue",
+      "d) map cos 5 queue 4"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet de passer du mode utilisateur au mode privilégié sur un switch ?",
+    options: [
+      "a) configure terminal",
+      "b) enable",
+      "c) login",
+      "d) exec"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet d’entrer en mode de configuration globale ?",
+    options: [
+      "a) configure terminal",
+      "b) enable",
+      "c) config",
+      "d) global config"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande est utilisée pour changer le nom du switch en “S1” ?",
+    options: [
+      "a) name S1",
+      "b) hostname S1",
+      "c) switchname S1",
+      "d) set name S1"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet de définir un mot de passe pour le mode privilégié ?",
+    options: [
+      "a) password Cisco",
+      "b) enable password Cisco",
+      "c) set password Cisco",
+      "d) privilege password Cisco"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande permet d’afficher un message d’avertissement avant la connexion ?",
+    options: [
+      "a) message “ACCES INTERDIT”",
+      "b) login banner “ACCES INTERDIT”",
+      "c) banner motd “ACCES INTERDIT”",
+      "d) warning “ACCES INTERDIT”"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Pourquoi utilise-t-on la commande no ip domain-lookup ?",
+    options: [
+      "a) Empêcher la résolution DNS",
+      "b) Désactiver l’interface",
+      "c) Supprimer le routage",
+      "d) Activer Telnet"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet de configurer un mot de passe pour l’accès en mode console ?",
+    options: [
+      "a) line console 0 puis password Cisco",
+      "b) console password Cisco",
+      "c) set console password",
+      "d) password console Cisco"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet de configurer l’adresse IP du switch sur l’interface VLAN 1 ?",
+    options: [
+      "a) ip address vlan 1",
+      "b) interface vlan 1 puis ip address",
+      "c) vlan 1 ip address",
+      "d) set ip vlan 1"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande est utilisée pour activer une interface VLAN ?",
+    options: [
+      "a) enable vlan",
+      "b) up",
+      "c) no shutdown",
+      "d) activate"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quelle commande permet de configurer les lignes VTY pour Telnet ?",
+    options: [
+      "a) line vty 0 15 puis password class puis login",
+      "b) telnet password class",
+      "c) vty password class",
+      "d) set vty password"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Pourquoi utilise-t-on la commande service password-encryption ?",
+    options: [
+      "a) Crypter les mots de passe",
+      "b) Activer Telnet",
+      "c) Désactiver SSH",
+      "d) Configurer QoS"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet de régler l’heure et la date du switch ?",
+    options: [
+      "a) clock set 11:24:23 27 March 2025",
+      "b) set time 11:24:23",
+      "c) time 11:24:23",
+      "d) date 27 March 2025"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Ce mode permet d’accéder à toutes les commandes et fonctionnalités.",
+    options: [
+      "a) Mode utilisateur",
+      "b) Mode configuration",
+      "c) Mode privilégié",
+      "d) Mode global"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Dans quel mode IOS êtes-vous si l’invite Switch(config)# s’affiche ?",
+    options: [
+      "a) Mode configuration globale",
+      "b) Mode privilégié",
+      "c) Mode utilisateur",
+      "d) Mode interface"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Dans quel mode IOS êtes-vous si l’invite Switch> s’affiche ?",
+    options: [
+      "a) Mode configuration",
+      "b) Mode privilégié",
+      "c) Mode global",
+      "d) Mode utilisateur"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Quelles sont les deux commandes qui vous ramèneraient à l’invite d’exécution privilégiée quel que soit le mode ?",
+    options: [
+      "a) exit et quit",
+      "b) Ctrl+Z et end",
+      "c) disable et exit",
+      "d) logout et end"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Que fait la commande suivante ? login block-for 120 attempt 3 within 180",
+    options: [
+      "a) Bloque l’accès après 3 échecs en 120s",
+      "b) Bloque l’accès après 3 échecs en 180s",
+      "c) Active Telnet",
+      "d) Désactive SSH"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Dans login block-for 120 attempt 3 within 180, que signifie le nombre 120 ?",
+    options: [
+      "a) Nombre de tentatives",
+      "b) Durée du blocage",
+      "c) Intervalle des tentatives",
+      "d) Temps de connexion"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "À quoi sert la commande security passwords min-length 9 ?",
+    options: [
+      "a) Activer SSH",
+      "b) Forcer mot de passe ≥ 9 caractères",
+      "c) Désactiver Telnet",
+      "d) Configurer QoS"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle est la conséquence d’une mauvaise configuration de login block-for sur un routeur Cisco ?",
+    options: [
+      "a) Blocage des utilisateurs légitimes",
+      "b) Perte de bande passante",
+      "c) Boucles réseau",
+      "d) Erreurs de routage"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Pourquoi imposer un mot de passe de minimum 9 caractères ?",
+    options: [
+      "a) Simplifier la configuration",
+      "b) Résistance aux attaques par force brute",
+      "c) Activer SSH",
+      "d) Désactiver Telnet"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Que contrôle le paramètre attempt 3 dans la commande login block-for ?",
+    options: [
+      "a) Durée du blocage",
+      "b) Nombre de tentatives",
+      "c) Intervalle des tentatives",
+      "d) Temps de connexion"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Que contrôle le paramètre within 180 dans la commande login block-for ?",
+    options: [
+      "a) Durée du blocage",
+      "b) Intervalle des tentatives",
+      "c) Nombre de tentatives",
+      "d) Temps de connexion"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Que se passe-t-il si un utilisateur échoue 3 fois en 190 secondes (et non 180) ?",
+    options: [
+      "a) Rien, délai dépassé",
+      "b) Blocage pendant 120s",
+      "c) Connexion autorisée",
+      "d) Erreur système"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quel est l’effet de login block-for sur les attaques par force brute ?",
+    options: [
+      "a) Les ralentit",
+      "b) Les accélère",
+      "c) Les ignore",
+      "d) Les bloque complètement"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Pourquoi est-il important de spécifier min-length pour les mots de passe ?",
+    options: [
+      "a) Simplifier la configuration",
+      "b) Éviter les mots de passe faibles",
+      "c) Activer SSH",
+      "d) Désactiver Telnet"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel type d’attaque est directement limité par login block-for ?",
+    options: [
+      "a) Spoofing",
+      "b) Brute-force",
+      "c) DDoS",
+      "d) Man-in-the-middle"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Que fait la commande security passwords min-length 9 si un mot de passe de 8 caractères est entré ?",
+    options: [
+      "a) Accepté",
+      "b) Rejeté avec erreur",
+      "c) Converti à 9",
+      "d) Ignoré"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Où s’applique principalement login block-for ?",
+    options: [
+      "a) Console, Telnet, SSH",
+      "b) Interfaces VLAN",
+      "c) Ports trunk",
+      "d) VLAN voix"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Après l’expiration de block-for, que se passe-t-il ?",
+    options: [
+      "a) Tentatives réinitialisées",
+      "b) Connexion bloquée",
+      "c) Erreur système",
+      "d) Redémarrage"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Le paramètre min-length améliore la résistance contre quel type d’attaque ?",
+    options: [
+      "a) Spoofing",
+      "b) Deviner un mot de passe",
+      "c) DDoS",
+      "d) Man-in-the-middle"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Si vous configurez security passwords min-length 9, quelle serait une mauvaise pratique ?",
+    options: [
+      "a) Utiliser un mot de passe de 10 caractères",
+      "b) Utiliser un mot de passe de 4 caractères",
+      "c) Activer SSH",
+      "d) Désactiver Telnet"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est l’avantage de bloquer la connexion après des tentatives échouées ?",
+    options: [
+      "a) Plus de bande passante",
+      "b) Moins de risques d’accès non autorisé",
+      "c) Simplifie la configuration",
+      "d) Active QoS"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Combien de secondes durera le blocage avec login block-for 120 attempt 3 within 180 ?",
+    options: [
+      "a) 180 secondes",
+      "b) 3 secondes",
+      "c) 120 secondes",
+      "d) 60 secondes"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "security passwords min-length concerne :",
+    options: [
+      "a) Durée du mot de passe",
+      "b) Longueur minimale du mot de passe",
+      "c) Type de caractères",
+      "d) Cryptage"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Un administrateur veut renforcer la sécurité après plusieurs tentatives de mot de passe incorrect. Quelle commande utiliser ?",
+    options: [
+      "a) enable password",
+      "b) login block-for",
+      "c) no ip domain-lookup",
+      "d) service password-encryption"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Qu’est-ce que l’Inter-VLAN Routing ?",
+    options: [
+      "a) Configuration de trunks",
+      "b) Communication entre VLANs",
+      "c) Synchronisation de VLANs",
+      "d) QoS pour VLANs"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle est la fonction principale du routage Inter-VLAN ?",
+    options: [
+      "a) Segmenter les VLANs",
+      "b) Permettre la communication entre VLANs",
+      "c) Configurer des trunks",
+      "d) Activer QoS"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est le principal problème si un réseau utilise plusieurs VLANs sans routage ?",
+    options: [
+      "a) Boucles réseau",
+      "b) VLANs ne communiquent pas",
+      "c) Perte de bande passante",
+      "d) Erreurs de configuration"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle couche du modèle OSI est impliquée dans l’Inter-VLAN Routing ?",
+    options: [
+      "a) Couche 2",
+      "b) Couche 3",
+      "c) Couche 4",
+      "d) Couche 7"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est le protocole utilisé pour transporter plusieurs VLANs sur un lien trunk ?",
+    options: [
+      "a) VTP",
+      "b) 802.1Q",
+      "c) STP",
+      "d) DTP"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle méthode permet à un routeur de gérer le routage Inter-VLAN ?",
+    options: [
+      "a) Switch Layer 2",
+      "b) Router-on-a-Stick",
+      "c) VLAN natif",
+      "d) QoS"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Dans Router-on-a-Stick, chaque VLAN est associé à une :",
+    options: [
+      "a) Interface physique",
+      "b) Interface VLAN",
+      "c) Sous-interface",
+      "d) Port d’accès"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quelle commande est utilisée pour associer une sous-interface au VLAN 10 ?",
+    options: [
+      "a) encapsulation dot1q 10",
+      "b) vlan 10",
+      "c) switchport vlan 10",
+      "d) trunk vlan 10"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quel type de port est requis sur le switch connecté au routeur ?",
+    options: [
+      "a) Port d’accès",
+      "b) Trunk",
+      "c) Port voix",
+      "d) Port natif"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est le rôle de la “VLAN native” dans Router-on-a-Stick ?",
+    options: [
+      "a) VLAN voix",
+      "b) VLAN sans balise 802.1Q",
+      "c) VLAN de management",
+      "d) VLAN par défaut"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Que se passe-t-il si l’encapsulation 802.1Q n’est pas configurée sur la sous-interface ?",
+    options: [
+      "a) Le routage fonctionne",
+      "b) Les paquets sont bloqués",
+      "c) Le routage Inter-VLAN échoue",
+      "d) Les VLANs sont supprimés"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quel masque IP est correct pour une sous-interface en /24 ?",
+    options: [
+      "a) 255.255.0.0",
+      "b) 255.0.0.0",
+      "c) 255.255.255.0",
+      "d) 255.255.255.255"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Combien de sous-interfaces faut-il pour 4 VLANs ?",
+    options: [
+      "a) 1",
+      "b) 2",
+      "c) 4",
+      "d) 8"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quelle interface est correcte pour la sous-interface du VLAN 30 ?",
+    options: [
+      "a) Gig0/1.30",
+      "b) Gig0/1.10",
+      "c) VLAN 30",
+      "d) Subinterface 30"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande permet d’activer une interface de routeur ?",
+    options: [
+      "a) enable",
+      "b) up",
+      "c) no shutdown",
+      "d) activate"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Quelle ligne de configuration est obligatoire sur chaque sous-interface ?",
+    options: [
+      "a) ip address",
+      "b) vlan id",
+      "c) switchport",
+      "d) trunk"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande active le routage sur un switch L3 ?",
+    options: [
+      "a) ip routing",
+      "b) vlan routing",
+      "c) inter-vlan routing",
+      "d) route enable"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle interface logique est utilisée pour représenter un VLAN ?",
+    options: [
+      "a) Sous-interface",
+      "b) Interface VLAN",
+      "c) Port trunk",
+      "d) Port d’accès"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle est la fonction d’une interface VLAN ?",
+    options: [
+      "a) Configurer un trunk",
+      "b) Activer QoS",
+      "c) Donner une IP de passerelle",
+      "d) Synchroniser les VLANs"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Sur un switch L3, que faut-il désactiver pour transformer un port en interface Layer 3 ?",
+    options: [
+      "a) ip routing",
+      "b) switchport",
+      "c) vlan",
+      "d) trunk"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Que permet un port en mode router ?",
+    options: [
+      "a) Configurer QoS",
+      "b) Routage entre VLANs",
+      "c) Synchroniser VLANs",
+      "d) Activer trunks"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle condition est nécessaire pour que les hôtes d’un VLAN accèdent à d’autres VLANs ?",
+    options: [
+      "a) Trunk configuré",
+      "b) Passerelle par défaut correcte",
+      "c) VLAN natif",
+      "d) QoS activé"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Sur un switch L3, quel type de port permet l’interconnexion L3 entre switches ?",
+    options: [
+      "a) Trunk",
+      "b) Access",
+      "c) Routed",
+      "d) Voix"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Que signifie la commande no switchport sur un port ?",
+    options: [
+      "a) Désactive le port",
+      "b) Transforme en interface L3",
+      "c) Configure un trunk",
+      "d) Supprime un VLAN"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Que faut-il configurer en plus de l’adresse IP sur une interface routed ?",
+    options: [
+      "a) VLAN ID",
+      "b) Trunk",
+      "c) no shutdown",
+      "d) QoS"
+    ],
+    answer: 2 // c)
+  },
+  {
+    question: "Un PC dans le VLAN 10 ne pingue pas le VLAN 20. Quelle cause est probable ?",
+    options: [
+      "a) Routage Inter-VLAN absent",
+      "b) Passerelle incorrecte",
+      "c) Trunk mal configuré",
+      "d) Tout ci-dessus"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Un ping entre deux VLANs échoue, mais chaque VLAN a accès à Internet. Quelle est la cause ?",
+    options: [
+      "a) Routage Inter-VLAN absent",
+      "b) NAT incorrect",
+      "c) Firewall",
+      "d) VLAN natif"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "L’absence de encapsulation dot1q entraîne :",
+    options: [
+      "a) Échec du routage",
+      "b) Perte de bande passante",
+      "c) Boucles réseau",
+      "d) Erreurs de configuration"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Un port trunk doit avoir :",
+    options: [
+      "a) switchport mode access",
+      "b) switchport trunk encapsulation dot1q",
+      "c) no switchport",
+      "d) vlan natif"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Un routeur Cisco ne reconnaît pas encapsulation dot1q. Que faire ?",
+    options: [
+      "a) Mettre à jour IOS",
+      "b) Changer le port",
+      "c) Désactiver trunk",
+      "d) Configurer VLAN natif"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande affiche les sous-interfaces d’un routeur ?",
+    options: [
+      "a) show vlan brief",
+      "b) show interfaces trunk",
+      "c) show vtp status",
+      "d) show interfaces"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Quel outil pingue une passerelle VLAN depuis un switch ?",
+    options: [
+      "a) ping",
+      "b) traceroute",
+      "c) telnet",
+      "d) ssh"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quel protocole facilite la configuration automatique des VLANs ?",
+    options: [
+      "a) VTP",
+      "b) STP",
+      "c) DTP",
+      "d) 802.1Q"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Quelle commande affiche les VLANs créés ?",
+    options: [
+      "a) show interfaces trunk",
+      "b) show vlan brief",
+      "c) show vtp status",
+      "d) show interfaces switchport"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quelle commande affiche les VLANs actifs sur un trunk ?",
+    options: [
+      "a) show interfaces trunk",
+      "b) show vlan brief",
+      "c) show vtp status",
+      "d) show interfaces switchport"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Que se passe-t-il si deux VLANs ont des adresses IP sur le même sous-réseau ?",
+    options: [
+      "a) Routage échoue",
+      "b) Conflit d’adressage",
+      "c) Boucles réseau",
+      "d) Perte de bande passante"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Une ACL est appliquée sur une interface VLAN. Résultat ?",
+    options: [
+      "a) Routage échoue",
+      "b) Bloque la communication entre VLANs",
+      "c) Active QoS",
+      "d) Synchronise les VLANs"
+    ],
+    answer: 1 // b)
+  },
+  {
+    question: "Quel est l’effet d’une IP mal configurée sur une interface VLAN ?",
+    options: [
+      "a) VLAN inaccessible",
+      "b) Routage échoue",
+      "c) Boucles réseau",
+      "d) Perte de bande passante"
+    ],
+    answer: 0 // a)
+  },
+  {
+    question: "Dans une topologie avec plusieurs switches et un routeur, que faut-il pour assurer la communication Inter-VLAN ?",
+    options: [
+      "a) Trunks configurés",
+      "b) Routage activé",
+      "c) VLANs configurés",
+      "d) Tous les éléments ci-dessus"
+    ],
+    answer: 3 // d)
+  },
+  {
+    question: "Pourquoi préférer un switch de niveau 3 à un routeur pour l’Inter-VLAN Routing ?",
+    options: [
+      "a) Plus simple à configurer",
+      "b) Plus rapide (routage matériel)",
+      "c) Moins cher",
+      "d) Plus sécurisé"
+    ],
+    answer: 1 // b)
+  }
+];
+
+const quizContainer = document.getElementById('quiz-container');
+const nextBtn = document.getElementById('next-btn');
+const restartBtn = document.getElementById('restart-btn');
+const resultDiv = document.getElementById('result');
+const progressBar = document.getElementById('progress-bar');
+const currentQuestionSpan = document.getElementById('current-question');
+const totalQuestionsSpan = document.getElementById('total-questions');
+const themeToggle = document.getElementById('theme-toggle');
+const startScreen = document.getElementById('start-screen');
+const quizSection = document.getElementById('quiz-section');
+const resultsScreen = document.getElementById('results-screen');
+const startBtn = document.getElementById('start-btn');
+const questionCountInput = document.getElementById('question-count');
+
+let currentQuestionIndex = 0;
+let score = 0;
+let selectedQuestions = [];
+let userAnswers = [];
+let totalQuestions = 0;
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function startQuiz() {
+  totalQuestions = parseInt(questionCountInput.value);
+  if (totalQuestions < 1 || totalQuestions > quizData.length) {
+    alert(`Veuillez entrer un nombre entre 1 et ${quizData.length}.`);
+    return;
+  }
+  selectedQuestions = shuffleArray([...quizData]).slice(0, totalQuestions);
+  currentQuestionIndex = 0;
+  score = 0;
+  userAnswers = [];
+  startScreen.classList.add('hidden');
+  quizSection.classList.remove('hidden');
+  resultsScreen.classList.add('hidden');
+  totalQuestionsSpan.textContent = totalQuestions;
+  restartBtn.classList.remove('hidden');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  resultDiv.textContent = '';
+  const currentData = selectedQuestions[currentQuestionIndex];
+  let html = `<div class="question text-lg font-semibold mb-4 fade-in">Q${currentQuestionIndex + 1}. ${currentData.question}</div>`;
+  html += '<div class="answers space-y-3">';
+  currentData.options.forEach((option, idx) => {
+    html += `
+      <label class="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+        <input type="radio" name="answer" value="${idx}" class="mr-2" aria-labelledby="option-${idx}">
+        <span id="option-${idx}">${option}</span>
+      </label>
+    `;
+  });
+  html += '</div>';
+  quizContainer.innerHTML = html;
+  updateProgress();
+}
+
+function getSelected() {
+  const options = document.getElementsByName('answer');
+  for (let option of options) {
+    if (option.checked) {
+      return parseInt(option.value);
+    }
+  }
+  return null;
+}
+
+function updateProgress() {
+  const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+  progressBar.style.width = `${progress}%`;
+  currentQuestionSpan.textContent = currentQuestionIndex + 1;
+}
+
+function showResults() {
+  quizSection.classList.add('hidden');
+  resultsScreen.classList.remove('hidden');
+  restartBtn.classList.add('hidden');
+  let html = `<h2 class="text-xl font-bold text-center mb-4">Quiz terminé ! Votre score est ${score} sur ${totalQuestions}.</h2>`;
+  html += '<h3 class="text-lg font-semibold mb-2">Résumé des réponses :</h3>';
+  html += '<ul class="space-y-4">';
+  selectedQuestions.forEach((q, idx) => {
+    const userAnswer = userAnswers[idx];
+    const isCorrect = userAnswer === q.answer;
+    html += `
+      <li>
+        <p class="font-semibold">Q${idx + 1}. ${q.question}</p>
+        <p>Votre réponse : ${q.options[userAnswer] || 'Aucune'}</p>
+        <p class="${isCorrect ? 'text-green-600' : 'text-red-600'}">
+          ${isCorrect ? 'Correct' : `Incorrect. Bonne réponse : ${q.options[q.answer]}`}
+        </p>
+      </li>
+    `;
+  });
+  html += '</ul>';
+  html += `
+    <button id="restart-final-btn" class="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+      Recommencer un nouveau quiz
+    </button>
+  `;
+  resultsScreen.innerHTML = html;
+
+  document.getElementById('restart-final-btn').addEventListener('click', () => {
+    resultsScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+    restartBtn.classList.remove('hidden');
+  });
+}
+
+startBtn.addEventListener('click', startQuiz);
+
+nextBtn.addEventListener('click', () => {
+  const selected = getSelected();
+  if (selected === null) {
+    alert("Veuillez sélectionner une réponse.");
+    return;
+  }
+
+  const currentData = selectedQuestions[currentQuestionIndex];
+  userAnswers.push(selected);
+  if (selected === currentData.answer) {
+    score++;
+    resultDiv.textContent = "Bonne réponse ! 🎉";
+    resultDiv.className = "mt-4 text-center font-semibold text-green-600";
+  } else {
+    resultDiv.textContent = `Mauvaise réponse. La bonne réponse est : "${currentData.options[currentData.answer]}".`;
+    resultDiv.className = "mt-4 text-center font-semibold text-red-600";
+  }
+
+  currentQuestionIndex++;
+
+  if (currentQuestionIndex < totalQuestions) {
+    setTimeout(() => {
+      loadQuestion();
+      resultDiv.textContent = '';
+    }, 2000);
+  } else {
+    setTimeout(showResults, 2000);
+  }
+});
+
+restartBtn.addEventListener('click', () => {
+  startScreen.classList.remove('hidden');
+  quizSection.classList.add('hidden');
+  resultsScreen.classList.add('hidden');
+  currentQuestionIndex = 0;
+  score = 0;
+  userAnswers = [];
+});
+
+themeToggle.addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+  const isDark = document.body.classList.contains('dark-mode');
+  themeToggle.textContent = isDark ? '☀️ Mode clair' : '🌙 Mode sombre';
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+});
+
+if (localStorage.getItem('theme') === 'dark') {
+  document.body.classList.add('dark-mode');
+  themeToggle.textContent = '☀️ Mode clair';
+}
+</script>
+</body>
+</html>
