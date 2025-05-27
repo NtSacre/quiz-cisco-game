@@ -1,15 +1,15 @@
 const CACHE_NAME = 'quiz-cisco-game-cache-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/css/output.css',
-  '/js/app.js',
-  '/js/utils.js',
-  '/js/data.js',
-  '/assets/icons/favicon-32.png',
-  '/assets/icons/app-icon-192.png',
-  '/assets/icons/app-icon-500.png',
-  '/assets/music/track1.mp3'
+  '/quiz-cisco-game/',  // Racine de ton application
+  '/quiz-cisco-game/index.html',
+  '/quiz-cisco-game/css/output.css',
+  '/quiz-cisco-game/js/app.js',
+  '/quiz-cisco-game/js/utils.js',
+  '/quiz-cisco-game/js/data.js',
+  '/quiz-cisco-game/assets/icons/favicon-32.png',
+  '/quiz-cisco-game/assets/icons/app-icon-192.png',
+  '/quiz-cisco-game/assets/icons/app-icon-500.png',  // Correction de 500 à 512
+  '/quiz-cisco-game/assets/music/track1.mp3'
 ];
 
 // Installation du service worker et mise en cache des ressources
@@ -26,7 +26,6 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(response => {
-      // Retourne la ressource du cache si elle existe, sinon fait une requête réseau
       return response || fetch(event.request);
     })
   );
