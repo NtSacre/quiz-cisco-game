@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer;
+  }
+  .btn {
+    @apply bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition;
+  }
+  .btn-secondary {
+    @apply bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition;
+  }
+  .fab {
+    @apply w-12 h-12 rounded-full shadow flex items-center justify-center;
+  }
+  .prose img, .prose video {
+    @apply w-full rounded-lg my-2;
+  }
+  #config-intro-popup .popup-content {
+    @apply bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto mt-16;
+  }
+  #config-results-screen {
+    @apply max-h-[80vh] overflow-y-auto mt-16;
+  }
+  .ping-line {
+    @apply stroke-blue-500 dark:stroke-blue-400;
+    animation: dash 0.5s linear infinite;
+  }
+  .theme-icon {
+    @apply transition-opacity duration-200;
+  }
+}
+
+/* CLI Simulator */
+#config-input {
+  background: #1a1a1a;
+  color: #ffffff;
+  border: 1px solid #333;
+}
+
+.quiz-option-label.selected {
+  background-color: #3b82f6 !important; /* bg-blue-500 */
+  color: white !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Animation pour le popup */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+#config-intro-popup {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+.ping-line {
+  animation: dash 0.5s linear infinite;
+}
