@@ -605,7 +605,7 @@ function shareApp() {
 }
 
 const audio = document.getElementById('bg-music');
-audio.src = '/assets/music/track1.mp3';
+audio.src = 'assets/music/track1.mp3';
 document.getElementById('quiz-screen').addEventListener('transitionend', () => {
   if (!document.getElementById('quiz-screen').classList.contains('hidden')) audio.play();
 });

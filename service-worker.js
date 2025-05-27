@@ -1,15 +1,15 @@
 const CACHE_NAME = 'quiz-cisco-game-cache-v1';
 const urlsToCache = [
   '/',
-  '/index.html',
-  '/css/output.css',
-  '/js/app.js',
-  '/js/utils.js',
-  '/js/data.js',
-  '/assets/icons/favicon-32.png',
-  '/assets/icons/app-icon-192.png',
-  '/assets/icons/app-icon-500.png',
-  '/assets/music/track1.mp3'
+  'index.html',
+  'css/output.css',
+  'js/app.js',
+  'js/utils.js',
+  'js/data.js',
+  'assets/icons/favicon-32.png',
+  'assets/icons/app-icon-192.png',
+  'assets/icons/app-icon-500.png',
+  'assets/music/track1.mp3'
 ];
 
 // Installation du service worker et mise en cache des ressources
