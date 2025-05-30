@@ -604,8 +604,25 @@ function shareApp() {
   }
 }
 
+// Gestion du son
 const audio = document.getElementById('bg-music');
 audio.src = 'assets/music/track1.mp3';
+let isMuted = false; // Variable pour suivre l'état du son
+
+// Fonction pour basculer le son (mute/unmute)
+function toggleMute() {
+  if (isMuted) {
+    audio.muted = false; // Réactive le son
+    isMuted = false;
+    document.getElementById('fab-mute').textContent = 'Muet'; // Met à jour le texte du bouton
+  } else {
+    audio.muted = true; // Coupe le son
+    isMuted = true;
+    document.getElementById('fab-mute').textContent = 'Son'; // Met à jour le texte du bouton
+  }
+}
+
+// Écouteurs pour jouer l’audio sur certains écrans
 document.getElementById('quiz-screen').addEventListener('transitionend', () => {
   if (!document.getElementById('quiz-screen').classList.contains('hidden')) audio.play();
 });
