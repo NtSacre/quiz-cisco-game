@@ -202,7 +202,7 @@
   <audio id="bg-music" loop></audio>
   <script src="js/utils.js"></script>
   <script src="js/data.js"></script>
-  <script src="js/app.js"></script> -->
+  <script src="js/app.js"></script> 
 <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -216,20 +216,6 @@
       });
     }
   </script>
-<!-- <script>
 
-
-  if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-    for (let registration of registrations) {
-      registration.unregister().then(function(success) {
-        if (success) {
-          console.log('Service Worker unregistered successfully');
-        }
-      });
-    }
-  });
-}
-</script> -->
 </body>
 </html>
