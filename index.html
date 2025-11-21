@@ -3,219 +3,572 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Application éducative pour apprendre les cours Cisco CCNA">
   <title>Quiz Cisco Game</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-  <link href="css/output.css" rel="stylesheet">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="assets/icons/favicon-32.png"> <!-- Favicon -->
-  <link rel="apple-touch-icon" href="assets/icons/app-icon-192.png"> <!-- Icône pour iOS -->
-  <meta name="theme-color" content="#F5F6F5">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background: #f8fafc;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      transition: all 0.2s ease;
+    }
+    
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+    
+    .card:active {
+      transform: scale(0.98);
+    }
+    
+    .screen {
+      display: none;
+    }
+    
+    .screen.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+      font-weight: 600;
+      padding: 14px 24px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+    
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .progress-bar {
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: #3b82f6;
+      transition: width 0.3s ease;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .search-box {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px 16px;
+      transition: all 0.2s ease;
+    }
+    
+    .search-box:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .nav-item {
+      transition: all 0.2s ease;
+    }
+    
+    .nav-item.active {
+      color: #3b82f6;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
-  <!-- Header -->
-  <header class="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow p-4 flex items-center z-10">
-    <button id="back-button" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hidden mr-2" aria-hidden="true">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-    </button>
-    <h1 class="text-xl font-bold flex-1">Quiz Cisco Game</h1>
-    <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700" aria-label="Basculer le thème">
-      <svg id="theme-icon-sun" class="w-6 h-6 theme-icon dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-      <svg id="theme-icon-moon" class="w-6 h-6 theme-icon hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-      </svg>
-    </button>
-  </header>
-
-  <!-- Main Content -->
-  <main class="pt-24 pb-20 px-4">
-    <!-- Home Screen -->
-    <section id="home-screen" class="space-y-4">
-      <div class="card flex items-center space-x-2" onclick="showCourses()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-        </svg>
-        <span>Cours</span>
+<body>
+  <div class="max-w-md mx-auto min-h-screen bg-white">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 p-4 sticky top-0 z-50">
+      <div class="flex items-center justify-between">
+        <button id="back-btn" class="hidden p-2 hover:bg-gray-100 rounded-lg" onclick="goBack()">
+          <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 id="header-title" class="text-xl font-semibold text-gray-900">Quiz Cisco Game</h1>
+        <button onclick="toggleTheme()" class="p-2 hover:bg-gray-100 rounded-lg">
+          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
       </div>
-      <div class="card flex items-center space-x-2" onclick="showQuizSetup()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>Quiz</span>
-      </div>
-      <div class="card flex items-center space-x-2" onclick="showConfigSetup()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <span>Configurations</span>
-      </div>
-      <div class="card flex items-center space-x-2" onclick="showFavorites()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-        </svg>
-        <span>Favoris</span>
-      </div>
-      <div class="card flex items-center space-x-2" onclick="showProgress()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        <span>Progrès</span>
-      </div>
-      <div class="card flex items-center space-x-2" onclick="showScreen('about-screen')">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>À propos</span>
-      </div>
-      <div class="card flex items-center space-x-2" onclick="shareApp()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-        </svg>
-        <span>Partager l'application</span>
-      </div>
-      <!-- Ajout de la version et du nom en bas -->
-      <div class="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
-        Quiz Cisco Game Version v2.0.0 by NTANDOU Sacre (NTS)
-      </div>
-    </section>
+    </header>
 
-    <!-- Courses -->
-    <section id="courses-screen" class="hidden space-y-4"></section>
+    <!-- Main Content -->
+    <main class="pb-20">
+      <!-- Home Screen -->
+      <div id="home-screen" class="screen active">
+        <!-- Stats -->
+        <div class="p-4">
+          <div class="card p-5 bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-4">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-lg font-semibold">Votre progression</h2>
+              <span class="text-2xl">📊</span>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
+                <p class="text-3xl font-bold mb-1">68%</p>
+                <p class="text-sm text-blue-100">Taux de réussite</p>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-semibold">24/35</p>
+                <p class="text-sm text-blue-100">Chapitres complétés</p>
+              </div>
+            </div>
+          </div>
 
-    <!-- Modules -->
-    <section id="modules-screen" class="hidden space-y-4">
-      <div class="mb-6">
-        <input class="search-input w-full p-3 rounded-lg bg-white dark:bg-gray-800 shadow focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" placeholder="Rechercher modules ou chapitres...">
-        <div class="search-results mt-2"></div>
-      </div>
-    </section>
+          <!-- Quick Stats -->
+          <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="card p-4 text-center">
+              <p class="text-2xl font-bold text-gray-900">12</p>
+              <p class="text-xs text-gray-600 mt-1">Modules</p>
+            </div>
+            <div class="card p-4 text-center">
+              <p class="text-2xl font-bold text-gray-900">156</p>
+              <p class="text-xs text-gray-600 mt-1">Questions</p>
+            </div>
+            <div class="card p-4 text-center">
+              <p class="text-2xl font-bold text-gray-900">8h</p>
+              <p class="text-xs text-gray-600 mt-1">Temps total</p>
+            </div>
+          </div>
 
-    <!-- Chapters -->
-    <section id="chapters-screen" class="hidden space-y-4">
-      <div class="mb-6">
-        <input class="search-input w-full p-3 rounded-lg bg-white dark:bg-gray-800 shadow focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" placeholder="Rechercher modules ou chapitres...">
-        <div class="search-results mt-2"></div>
-      </div>
-    </section>
+          <!-- Main Menu -->
+          <div class="space-y-3">
+            <!-- Cours -->
+            <div onclick="showCourses()" class="card p-4 cursor-pointer">
+              <div class="flex items-center space-x-4">
+                <div class="icon-box bg-blue-50">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900">Cours</h3>
+                  <p class="text-sm text-gray-500">Parcourir tous les modules</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
 
-    <!-- Chapter Content -->
-    <section id="chapter-content-screen" class="hidden prose dark:prose-invert max-w-none">
-      <div class="mb-6">
-        <input class="search-input w-full p-3 rounded-lg bg-white dark:bg-gray-800 shadow focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" placeholder="Rechercher modules ou chapitres...">
-        <div class="search-results mt-2"></div>
-      </div>
-    </section>
+            <!-- Quiz -->
+            <div onclick="showQuizSetup()" class="card p-4 cursor-pointer">
+              <div class="flex items-center space-x-4">
+                <div class="icon-box bg-green-50">
+                  <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900">Quiz</h3>
+                  <p class="text-sm text-gray-500">Testez vos connaissances</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
 
-    <!-- Quiz Setup -->
-    <section id="quiz-setup-screen" class="hidden space-y-4">
-      <select id="quiz-course" class="w-full p-3 rounded-lg bg-white dark:bg-gray-800 shadow">
-        <option value="">Choisir un cours</option>
-      </select>
-      <input id="quiz-num-questions" type="number" min="1" placeholder="Nombre de questions" class="w-full p-3 rounded-lg bg-white dark:bg-gray-800 shadow">
-      <button onclick="startQuiz()" class="btn">Lancer le quiz</button>
-    </section>
+            <!-- Configurations -->
+            <div onclick="showConfigSetup()" class="card p-4 cursor-pointer">
+              <div class="flex items-center space-x-4">
+                <div class="icon-box bg-purple-50">
+                  <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900">Configurations</h3>
+                  <p class="text-sm text-gray-500">Simulations réseau pratiques</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
 
-    <!-- Quiz -->
-    <section id="quiz-screen" class="hidden space-y-4">
-      <div id="quiz-question" class="text-lg"></div>
-      <form id="quiz-options" class="space-y-2"></form>
-      <div class="flex space-x-4">
-        <button id="quiz-submit" class="btn">Soumettre</button>
-        <button id="quiz-restart" class="btn">Recommencer</button>
-      </div>
-      <div id="quiz-feedback" class="text-center"></div>
-    </section>
+            <!-- Favoris -->
+            <div onclick="showFavorites()" class="card p-4 cursor-pointer">
+              <div class="flex items-center space-x-4">
+                <div class="icon-box bg-yellow-50">
+                  <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900">Favoris</h3>
+                  <p class="text-sm text-gray-500">Contenus sauvegardés</p>
+                </div>
+                <span class="badge bg-gray-100 text-gray-700">12</span>
+              </div>
+            </div>
 
-    <!-- Quiz Results -->
-    <section id="quiz-results-screen" class="hidden space-y-4"></section>
+            <!-- Progrès -->
+            <div onclick="showProgress()" class="card p-4 cursor-pointer">
+              <div class="flex items-center space-x-4">
+                <div class="icon-box bg-indigo-50">
+                  <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900">Progrès</h3>
+                  <p class="text-sm text-gray-500">Suivez votre évolution</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <!-- Config Setup -->
-    <section id="config-setup-screen" class="hidden space-y-4">
-      <select id="config-course" class="w-full p-3 rounded-lg bg-white dark:bg-gray-800 shadow">
-        <option value="">Choisir un cours</option>
-      </select>
-      <select id="config-type" class="w-full p-3 rounded-lg bg-white dark:bg-gray-800 shadow">
-        <option value="">Choisir une configuration</option>
-      </select>
-      <button id="config-submit-btn" class="btn">Lancer les configurations</button>
-    </section>
-
-    <!-- Config -->
-    <section id="config-screen" class="hidden space-y-4">
-      <div id="config-question" class="text-lg"></div>
-      <div class="flex flex-col space-y-2">
-        <span id="config-label" class="text-green-500 font-mono"></span>
-        <input id="config-input" type="text" class="w-full p-3 rounded-lg bg-gray-800 text-white font-mono shadow focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Entrez la commande">
-      </div>
-      <button id="config-hint" class="btn btn-secondary">Indice</button>
-      <button id="config-submit" class="btn">Soumettre</button>
-      <div id="config-feedback" class="text-center"></div>
-      <div id="ping-visualization" class="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow"></div>
-    </section>
-
-    <!-- Config Results -->
-    <section id="config-results-screen" class="hidden space-y-4"></section>
-
-    <!-- Favorites -->
-    <section id="favorites-screen" class="hidden space-y-4"></section>
-
-    <!-- Progress -->
-    <section id="progress-screen" class="hidden space-y-4"></section>
-
-    <!-- About Screen -->
-    <section id="about-screen" class="hidden space-y-4">
-      <h1 class="text-2xl font-bold text-center">À propos de l'App CCNA</h1>
-      <div class="p-4 rounded-lg shadow bg-white dark:bg-gray-800">
-        <p>Quiz Cisco Game est une application éducative conçue pour aider les étudiants et professionnels à maîtriser les concepts des réseaux Cisco CCNA. Avec des cours interactifs, des quiz stimulants et des simulations de configuration réseau, nous vous préparons à réussir votre certification CCNA.</p>
-        <p class="mt-2">Pour aller plus loin, nous proposons des formations complètes en ligne et en présentiel. Contactez-nous pour en savoir plus !</p>
-        <h2 class="text-xl font-bold mt-4">Contactez-nous</h2>
-        <div class="mt-4 flex flex-col space-y-2">
-          <a href="https://wa.me/+221776148845" class="btn bg-green-500 text-white"><strong> WhatsApp: +221 77 614 88 45 </strong></a>
-          <a href="mailto:sacrentandou2.0@gmail.com" class="btn bg-blue-500 text-white"><strong>Email: sacrentandou2.0@gmail.com</strong></a>
-          
+        <!-- Footer -->
+        <div class="px-4 py-6 text-center">
+          <p class="text-sm text-gray-500">Version 2.0.0 • By NTANDOU Sacre</p>
+          <button onclick="showAbout()" class="text-sm text-blue-600 font-medium mt-2">En savoir plus</button>
         </div>
       </div>
-    </section>
-  </main>
 
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-20" role="dialog" aria-modal="true" inert>
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm w-full">
-      <h2 id="modal-title" class="text-xl font-bold mb-4">Notification</h2>
-      <p id="modal-message" class="mb-4"></p>
-      <button id="modal-close" class="btn w-full">OK</button>
-    </div>
+      <!-- Courses Screen -->
+      <div id="courses-screen" class="screen">
+        <div class="p-4 space-y-4">
+          <input type="text" placeholder="Rechercher un cours..." class="search-box w-full">
+          
+          <div class="space-y-3">
+            <div class="card p-4 cursor-pointer" onclick="showModules()">
+              <div class="flex items-center space-x-4">
+                <div class="icon-box bg-gradient-to-br from-blue-500 to-blue-600">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900">CCNA 200-301</h3>
+                  <p class="text-sm text-gray-500">24 modules • 156 chapitres</p>
+                  <div class="progress-bar mt-2">
+                    <div class="progress-fill" style="width: 68%"></div>
+                  </div>
+                </div>
+                <span class="badge bg-blue-50 text-blue-700">68%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modules Screen -->
+      <div id="modules-screen" class="screen">
+        <div class="p-4 space-y-4">
+          <input type="text" placeholder="Rechercher un module..." class="search-box w-full">
+          
+          <div class="space-y-3">
+            <div class="card p-4 cursor-pointer" onclick="showChapters()">
+              <div class="flex items-start space-x-4">
+                <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                  1
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900 mb-1">Introduction aux réseaux</h3>
+                  <p class="text-sm text-gray-600 mb-2">Les fondamentaux des réseaux informatiques</p>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-500">8 chapitres</span>
+                    <div class="progress-bar w-24">
+                      <div class="progress-fill" style="width: 75%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card p-4 cursor-pointer">
+              <div class="flex items-start space-x-4">
+                <div class="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center text-gray-600 font-semibold flex-shrink-0">
+                  2
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900 mb-1">Configuration de base</h3>
+                  <p class="text-sm text-gray-600 mb-2">Paramétrage initial des équipements</p>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-500">6 chapitres</span>
+                    <div class="progress-bar w-24">
+                      <div class="progress-fill" style="width: 45%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapters Screen -->
+      <div id="chapters-screen" class="screen">
+        <div class="p-4 space-y-4">
+          <input type="text" placeholder="Rechercher un chapitre..." class="search-box w-full">
+          
+          <div class="space-y-2">
+            <div class="card p-3 cursor-pointer" onclick="showChapterContent()">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h4 class="font-medium text-gray-900 text-sm">Les modèles OSI et TCP/IP</h4>
+                  <p class="text-xs text-gray-500">15 min • Complété</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card p-3 cursor-pointer">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h4 class="font-medium text-gray-900 text-sm">Adressage IP et sous-réseaux</h4>
+                  <p class="text-xs text-gray-500">20 min • En cours</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card p-3 cursor-pointer">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h4 class="font-medium text-gray-900 text-sm">Protocoles de routage</h4>
+                  <p class="text-xs text-gray-500">25 min • Verrouillé</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Setup Screen -->
+      <div id="quiz-setup-screen" class="screen">
+        <div class="p-4 space-y-4">
+          <div class="card p-6 text-center">
+            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Nouveau Quiz</h2>
+            <p class="text-sm text-gray-600">Configurez votre session de quiz</p>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Cours</label>
+              <select class="search-box w-full">
+                <option>Sélectionner un cours</option>
+                <option>CCNA 200-301</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de questions</label>
+              <input type="number" placeholder="10" class="search-box w-full" min="5" max="50" value="10">
+            </div>
+            
+            <button onclick="startQuiz()" class="btn-primary w-full">Démarrer le quiz</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- About Screen -->
+      <div id="about-screen" class="screen">
+        <div class="p-4 space-y-4">
+          <div class="card p-6">
+            <div class="text-center mb-6">
+              <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 class="text-xl font-semibold text-gray-900 mb-1">Quiz Cisco Game</h2>
+              <p class="text-sm text-gray-600">Version 2.0.0</p>
+            </div>
+            
+            <p class="text-sm text-gray-700 leading-relaxed mb-6">
+              Application éducative conçue pour aider les étudiants et professionnels à maîtriser les concepts des réseaux Cisco CCNA. Avec des cours interactifs, des quiz stimulants et des simulations de configuration réseau.
+            </p>
+            
+            <div class="space-y-3">
+              <a href="https://wa.me/+221776148845" class="block">
+                <button class="w-full bg-green-600 text-white font-medium py-3 rounded-lg hover:bg-green-700 transition-colors">
+                  WhatsApp: +221 77 614 88 45
+                </button>
+              </a>
+              
+              <a href="mailto:sacrentandou2.0@gmail.com" class="block">
+                <button class="w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                  Email: sacrentandou2.0@gmail.com
+                </button>
+              </a>
+            </div>
+            
+            <div class="text-center mt-6 pt-6 border-t border-gray-200">
+              <p class="text-xs text-gray-600">Développé par <span class="font-semibold">NTANDOU Sacre (NTS)</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200">
+      <div class="flex items-center justify-around p-2">
+        <button onclick="showHome()" class="nav-item active flex flex-col items-center space-y-1 p-2 rounded-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          <span class="text-xs font-medium">Accueil</span>
+        </button>
+        
+        <button onclick="showCourses()" class="nav-item flex flex-col items-center space-y-1 p-2 text-gray-500 rounded-lg hover:bg-gray-50">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span class="text-xs font-medium">Cours</span>
+        </button>
+        
+        <button onclick="showQuizSetup()" class="nav-item flex flex-col items-center space-y-1 p-2 text-gray-500 rounded-lg hover:bg-gray-50">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="text-xs font-medium">Quiz</span>
+        </button>
+        
+        <button onclick="showProgress()" class="nav-item flex flex-col items-center space-y-1 p-2 text-gray-500 rounded-lg hover:bg-gray-50">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span class="text-xs font-medium">Progrès</span>
+        </button>
+      </div>
+    </nav>
   </div>
 
-  <!-- Floating Action Buttons -->
-  <div id="fab-container" class="fixed bottom-4 right-4 flex flex-col gap-2">
-    <button id="fab-finish" class="fab hidden bg-blue-500 text-white" onclick="markChapterFinished()" aria-label="Marquer le chapitre comme terminé">Terminer</button>
-    <button id="fab-favorite" class="fab hidden bg-yellow-600 text-white" onclick="toggleFavorite()" aria-label="Ajouter ou retirer des favoris">Favoris</button>
-    <button id="fab-mute" class="fab hidden bg-gray-500 text-white" onclick="toggleMute()" aria-label="Couper le son">Muet</button>
-  </div>
+  <script>
+    let currentScreen = 'home-screen';
+    const history = ['home-screen'];
 
-  <!-- Audio -->
-  <audio id="bg-music" loop></audio>
-  <script src="js/utils.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script> 
-<script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-          .then(registration => {
-            console.log('Service Worker registered with scope:', registration.scope);
-          })
-          .catch(error => {
-            console.error('Service Worker registration failed:', error);
-          });
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+      
+      currentScreen = screenId;
+      history.push(screenId);
+      
+      const backBtn = document.getElementById('back-btn');
+      if (screenId === 'home-screen') {
+        backBtn.classList.add('hidden');
+      } else {
+        backBtn.classList.remove('hidden');
+      }
+      
+      updateHeader(screenId);
+      updateNav(screenId);
+    }
+
+    function updateHeader(screenId) {
+      const titles = {
+        'home-screen': 'Quiz Cisco Game',
+        'courses-screen': 'Cours',
+        'modules-screen': 'Modules',
+        'chapters-screen': 'Chapitres',
+        'quiz-setup-screen': 'Nouveau Quiz',
+        'about-screen': 'À propos'
+      };
+      document.getElementById('header-title').textContent = titles[screenId] || 'Quiz Cisco Game';
+    }
+
+    function updateNav(screenId) {
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        item.classList.add('text-gray-500');
       });
+      
+      if (screenId === 'home-screen') {
+        document.querySelector('.nav-item').classList.add('active');
+        document.querySelector('.nav-item').classList.remove('text-gray-500');
+      }
+    }
+
+    function goBack() {
+      if (history.length > 1) {
+        history.pop();
+        const previousScreen = history[history.length - 1];
+        showScreen(previousScreen);
+        history.pop();
+      }
+    }
+
+    function showHome() { showScreen('home-screen'); }
+    function showCourses() { showScreen('courses-screen'); }
+    function showModules() { showScreen('modules-screen'); }
+    function showChapters() { showScreen('chapters-screen'); }
+    function showChapterContent() { alert('Contenu du chapitre à venir'); }
+    function showQuizSetup() { showScreen('quiz-setup-screen'); }
+    function showConfigSetup() { alert('Configuration à venir'); }
+    function showFavorites() { alert('Favoris à venir'); }
+    function showProgress() { alert('Progrès à venir'); }
+    function showAbout() { showScreen('about-screen'); }
+    function startQuiz() { alert('Démarrage du quiz...'); }
+    function toggleTheme() { 
+      document.body.classList.toggle('dark');
     }
   </script>
-
 </body>
 </html>

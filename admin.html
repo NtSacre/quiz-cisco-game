@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .sidebar { min-width: 200px; }
+    .sidebar a { display: block; padding: 10px 15px; border-radius: 5px; margin-bottom: 5px; }
+    .sidebar a.active { background-color: #3b82f6; color: white; }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex h-screen">
+
+  <!-- Sidebar -->
+  <aside class="sidebar bg-white dark:bg-gray-800 p-4 shadow-lg flex-shrink-0">
+    <h2 class="text-xl font-bold mb-6">Admin Dashboard</h2>
+    <nav>
+      <a href="#" class="menu-link active" data-section="dashboard">Dashboard</a>
+      <a href="#" class="menu-link" data-section="courses">Cours</a>
+      <a href="#" class="menu-link" data-section="modules">Modules</a>
+      <a href="#" class="menu-link" data-section="chapters">Chapitres</a>
+      <a href="#" class="menu-link" data-section="quiz">Quiz</a>
+      <a href="#" class="menu-link" data-section="configs">Configs</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 p-6 overflow-y-auto">
+
+    <!-- Dashboard -->
+    <section id="dashboard" class="section">
+      <h2 class="text-2xl font-bold mb-4">Bienvenue sur le Dashboard</h2>
+      <p>Utilisez le menu à gauche pour gérer les cours, modules, chapitres et configurations.</p>
+    </section>
+
+    <!-- Courses -->
+    <section id="courses" class="section hidden">
+      <h2 class="text-2xl font-bold mb-4">Gestion des Cours</h2>
+      
+      <!-- Formulaire ajout cours -->
+      <div class="mb-6">
+        <input id="course-name" type="text" placeholder="Nom du cours" class="p-2 rounded border w-full mb-2">
+        <button id="add-course-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ajouter le cours</button>
+      </div>
+
+      <!-- Liste des cours -->
+      <div id="courses-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- Modules (placeholder) -->
+    <section id="modules" class="section hidden">
+      <h2 class="text-2xl font-bold mb-4">Gestion des Modules (à venir)</h2>
+      <p>Cette section sera utilisée pour ajouter/éditer les modules.</p>
+    </section>
+
+    <!-- Chapitres (placeholder) -->
+    <section id="chapters" class="section hidden">
+      <h2 class="text-2xl font-bold mb-4">Gestion des Chapitres (à venir)</h2>
+    </section>
+
+    <!-- Quiz (placeholder) -->
+    <section id="quiz" class="section hidden">
+      <h2 class="text-2xl font-bold mb-4">Gestion des Quiz (à venir)</h2>
+    </section>
+
+    <!-- Configs (placeholder) -->
+    <section id="configs" class="section hidden">
+      <h2 class="text-2xl font-bold mb-4">Gestion des Configurations (à venir)</h2>
+    </section>
+
+  </main>
+
+  <script>
+    // Sidebar navigation
+    const menuLinks = document.querySelectorAll('.menu-link');
+    const sections = document.querySelectorAll('.section');
+
+    menuLinks.forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        menuLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        const target = link.dataset.section;
+        sections.forEach(s => s.classList.add('hidden'));
+        document.getElementById(target).classList.remove('hidden');
+      });
+    });
+
+    // Gestion des cours
+    const courseInput = document.getElementById('course-name');
+    const addCourseBtn = document.getElementById('add-course-btn');
+    const coursesList = document.getElementById('courses-list');
+
+    function getCourses() {
+      return JSON.parse(localStorage.getItem('adminCourses')) || [];
+    }
+
+    function saveCourses(courses) {
+      localStorage.setItem('adminCourses', JSON.stringify(courses));
+    }
+
+    function renderCourses() {
+      const courses = getCourses();
+      if (courses.length === 0) {
+        coursesList.innerHTML = '<p class="text-gray-500">Aucun cours ajouté.</p>';
+        return;
+      }
+      coursesList.innerHTML = courses.map((c, index) => `
+        <div class="bg-white dark:bg-gray-800 p-4 rounded shadow flex justify-between items-center">
+          <span>${c.name}</span>
+          <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600" onclick="deleteCourse(${index})">Supprimer</button>
+        </div>
+      `).join('');
+    }
+
+    function deleteCourse(index) {
+      const courses = getCourses();
+      courses.splice(index, 1);
+      saveCourses(courses);
+      renderCourses();
+    }
+
+    addCourseBtn.addEventListener('click', () => {
+      const name = courseInput.value.trim();
+      if (!name) return alert('Veuillez entrer un nom de cours.');
+      const courses = getCourses();
+      courses.push({ name });
+      saveCourses(courses);
+      courseInput.value = '';
+      renderCourses();
+    });
+
+    // Initial render
+    renderCourses();
+  </script>
+</body>
+</html>
